@@ -8,72 +8,32 @@ struct Edge {
 }
 
 fn can_do(c : char, result : &String, edge_list : &Vec<Edge>) -> bool {
-    if result.contains(c) {
-        return false;
-    }
-
-    for edge in edge_list {
-        if edge.to == c && !result.contains(edge.from) {
-            return false;
-        }
-    }
-    true
+       !result.contains(c)
+    && !edge_list.iter().any(|edge| edge.to == c && !result.contains(edge.from))
 }
 
 fn solve_1(chars : &HashSet<char>, edge_list : &Vec<Edge>) {
     let mut result : String = String::new();
 
-    let chars_iter = chars.iter();
-
     loop {
         // Find todo set
-        let mut todo : Vec<char> = chars_iter
-            .clone()
-            .map(|x| *x)
-            .filter(|c| can_do(*c, &result, &edge_list))
-            .collect();
-        // Test whether it is empty
-        if todo.len() == 0 {
-            break;
+        let todo = chars
+            .iter()
+            .cloned()
+            .filter(|&c| can_do(c, &result, &edge_list));
+
+        if let Some(value) = todo.min() {
+            result.push(value)
+        } else {
+            break
         }
-        // Do a thing
-        todo.sort();
-        result.push(*todo.get(0).unwrap());
     }
 
     println!("{}", result);
 }
 
 fn work(c : char) -> i32 {
-    match c {
-        'A' => 61,
-        'B' => 62,
-        'C' => 63,
-        'D' => 64,
-        'E' => 65,
-        'F' => 66,
-        'G' => 67,
-        'H' => 68,
-        'I' => 69,
-        'J' => 70,
-        'K' => 71,
-        'L' => 72,
-        'M' => 73,
-        'N' => 74,
-        'O' => 75,
-        'P' => 76,
-        'Q' => 77,
-        'R' => 78,
-        'S' => 79,
-        'T' => 80,
-        'U' => 81,
-        'V' => 82,
-        'W' => 83,
-        'X' => 84,
-        'Y' => 85,
-        'Z' => 86,
-        _   => panic!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
-    }
+    (c as i32) - ('A' as i32) + 61
 }
 
 
@@ -82,20 +42,18 @@ fn solve_2(chars : &HashSet<char>, edge_list : &Vec<Edge>) {
     let mut time = 0;
     let mut working : Vec<(char, i32)> = Vec::new();
 
-    let chars_iter = chars.iter();
-
     loop {
         let doing : HashSet<char> = working.iter().map(|(c, _i)| *c).collect();
 
-        let mut todo : Vec<char> = chars_iter
-            .clone()
-            .map(|x| *x)
+        let mut todo : Vec<char> = chars
+            .iter()
+            .cloned()
             .filter(|c| can_do(*c, &result, &edge_list))
             .filter(|c| !doing.contains(c))
             .collect();
         todo.sort();
 
-        if working.len() == 0 && todo.len() == 0 {
+        if working.is_empty() && todo.is_empty() {
             break
         }
 
@@ -108,7 +66,7 @@ fn solve_2(chars : &HashSet<char>, edge_list : &Vec<Edge>) {
         // return new task list and finished task
         working.sort_by_key(|(_c, i)| -i);
         let (c, step) = working.pop().unwrap();
-        working = working.iter().map(|(c,i)| (*c, i - step)).collect();
+        working = working.iter().cloned().map(|(c,i)| (c, i - step)).collect();
 
         result.push(c);
         time += step;

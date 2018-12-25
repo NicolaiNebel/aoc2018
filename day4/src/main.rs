@@ -1,31 +1,26 @@
-use std::iter::FromIterator;
+use std::ops::Range;
 use std::collections::HashMap;
 
 #[macro_use] extern crate scan_fmt;
 
-#[derive(Debug)]
-#[derive(Copy)]
-#[derive(Clone)]
-struct Interval(i32,i32);
-
-fn minutes_asleep(v : Vec<Interval>) -> i32 {
-    v.iter().map(|Interval(from,to)| to - from).sum()
+fn minutes_asleep(v : &[Range<i32>]) -> i32 {
+    v.iter().map(|&Range{start,end}| end - start).sum()
 }
 
-fn times_asleep(n : &Vec<Interval>, minute : i32) -> i32 {
+fn times_asleep(n : &[Range<i32>], minute : i32) -> i32 {
     let mut res = 0;
-    for Interval(from, to) in n {
-        if minute >= *from && minute < *to {
+    for &Range{start : from, end : to} in n {
+        if minute >= from && minute < to {
             res += 1;
         }
     }
     res
 }
 
-fn minute_most_frequently_asleep(intervals : &Vec<Interval>) -> (i32, i32) {
+fn minute_most_frequently_asleep(intervals : &[Range<i32>]) -> (i32, i32) {
     let mut minutes : [i32; 60] = [0; 60];
-    for Interval(from, to) in intervals {
-        let slice : &mut[i32] = &mut minutes[*from as usize ..*to as usize];
+    for &Range{start: from,end: to} in intervals {
+        let slice : &mut[i32] = &mut minutes[from as usize .. to as usize];
         for x in slice {
             *x += 1;
         }
@@ -35,17 +30,17 @@ fn minute_most_frequently_asleep(intervals : &Vec<Interval>) -> (i32, i32) {
     (x,*y)
 }
 
-fn solve_1(guard_map : &HashMap<i32, Vec<Interval>>) {
+fn solve_1(guard_map : &HashMap<i32, Vec<Range<i32>>>) {
     let ret = guard_map
         .iter()
-        .max_by(|(_k1,v1),(_k2,v2)| minutes_asleep(v1.to_vec()).cmp(&minutes_asleep(v2.to_vec())))
+        .max_by_key(|(_k1,v1)| minutes_asleep(v1))
         .unwrap();
 
-    let pick = (0..60).max_by(|x,y| times_asleep(ret.1, *x).cmp(&times_asleep(ret.1, *y))).unwrap();
+    let pick = (0..60).max_by_key(|&x| times_asleep(ret.1, x)).unwrap();
     println!("{}", ret.0 * pick);
 }
 
-fn solve_2(guard_map : &HashMap<i32, Vec<Interval>>) {
+fn solve_2(guard_map : &HashMap<i32, Vec<Range<i32>>>) {
     let minute_map = guard_map.iter().map(|(&k,v)| (k, minute_most_frequently_asleep(v)));
     let res = minute_map.max_by_key(|(_k,v)| v.1);
     println!("{:?}", res);
@@ -53,10 +48,10 @@ fn solve_2(guard_map : &HashMap<i32, Vec<Interval>>) {
 
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
-    let mut sorted_lines = Vec::from_iter(input.lines());
-    sorted_lines.sort_by_key(|x| *x);
+    let mut sorted_lines: Vec<_> = input.lines().collect();
+    sorted_lines.sort_by_key(|&x| x);
 
-    let mut guard_map : HashMap<i32, Vec<Interval>>= HashMap::new();
+    let mut guard_map : HashMap<i32, Vec<Range<i32>>>= HashMap::new();
 
     let mut current_guard = 0;
     let mut fall_asleep_minute = 0;
@@ -77,7 +72,7 @@ fn main() {
         }
         else if c == 'w' {
             let vec = guard_map.entry(current_guard).or_insert(Vec::new());
-            vec.push(Interval(fall_asleep_minute, minute));
+            vec.push(fall_asleep_minute .. minute);
         }
     }
     solve_1(&guard_map);

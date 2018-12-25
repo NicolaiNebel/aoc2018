@@ -65,7 +65,7 @@ fn solve_1(points : &Vec<Point>, min_x : i32, max_x : i32, min_y : i32, max_y : 
         .iter()
         .enumerate()
         .filter(|(i,_x)| !infinite_areas.contains(i))
-        .max_by_key(|(_i,x)| *x)
+        .max_by_key(|(_i,&x)| x)
         .unwrap();
 
     println!("{}", res.1);
@@ -79,7 +79,7 @@ fn solve_2(points : &Vec<Point>, min_x : i32, max_x : i32, min_y : i32, max_y : 
     let res : Vec<i32> = (min_x - 1000 .. max_x + 1000)
         .cartesian_product(min_y - 1000 .. max_y + 1000)
         .map(|(x,y)| dst_to_all_points(&Point(x,y), &points))
-        .filter(|x| *x < 10000)
+        .filter(|&x| x < 10000)
         .collect();
 
     println!("{}", res.len());
@@ -98,11 +98,11 @@ fn main() {
     }
 
     let (mut min_x, mut min_y, mut max_x, mut max_y) = (2000,2000,0,0);
-    for Point(x,y) in points.iter() {
-        if *x < min_x { min_x = *x }
-        if *x > max_x { max_x = *x }
-        if *y < min_y { min_y = *y }
-        if *y > max_y { max_y = *y }
+    for &Point(x,y) in points.iter() {
+        if x < min_x { min_x = x }
+        if x > max_x { max_x = x }
+        if y < min_y { min_y = y }
+        if y > max_y { max_y = y }
     }
     
     solve_1(&points, min_x, max_x, min_y, max_y);

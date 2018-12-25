@@ -1,5 +1,5 @@
 fn f(mut acc : String, c : char) -> String {
-    if acc.len() == 0 {
+    if acc.is_empty() {
         acc.push(c);
     } else {
         let prev_char = acc.pop().unwrap();
@@ -22,12 +22,10 @@ fn solve_1(input : &String) {
 }
 
 fn solve_2(input : &String) {
-    let chars = input.chars();
-
     let reduced_string = "abdefghijklmnopqrstuvwxyz"
         .chars()
-        .map(|c| chars
-                .clone()
+        .map(|c| input
+                .chars()
                 .filter(|r| c.to_ascii_lowercase() != (*r).to_ascii_lowercase())
                 .fold(String::new(), f)
                 .len())
@@ -41,5 +39,4 @@ fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
     solve_1(&input);
     solve_2(&input);
-
 }
